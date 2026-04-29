@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maquinaria Amarilla PDET — ART BCNN</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --negro:#0a0a0a;--gris1:#1a1a1a;--gris2:#2e2e2e;--gris3:#444;--gris4:#666;
+  --gris5:#999;--gris6:#bbb;--gris7:#d8d8d8;--gris8:#ebebeb;--gris9:#f5f5f5;--blanco:#fff;
+  --acento:#333;--r:8px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--gris9);color:var(--negro);min-height:100vh;font-size:14px}
+
+/* ── LOGIN ── */
+.login-wrap{position:fixed;inset:0;background:var(--negro);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
+.login-wrap.oculto{display:none}
+.login-card{background:var(--blanco);border-radius:16px;padding:44px 40px;width:400px;max-width:100%}
+.login-marca{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.login-escudo{width:44px;height:44px;background:var(--negro);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;font-size:14px;color:var(--blanco);letter-spacing:1px;flex-shrink:0}
+.login-nombre-app{font-family:'DM Mono',monospace;font-size:11px;color:var(--gris4);line-height:1.4;text-transform:uppercase;letter-spacing:.5px}
+.login-titulo{font-size:22px;font-weight:700;color:var(--negro);margin-bottom:6px;line-height:1.2}
+.login-subtitulo{font-size:12px;color:var(--gris4);margin-bottom:28px}
+.login-tabs{display:flex;gap:0;border:1.5px solid var(--gris7);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.login-tab{flex:1;padding:9px;background:var(--blanco);border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--gris4);transition:all .2s}
+.login-tab.activo{background:var(--negro);color:var(--blanco)}
+.campo-grupo{margin-bottom:14px}
+.campo-grupo label{display:block;font-size:11px;font-weight:600;color:var(--gris4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.campo-grupo input,.campo-grupo select{width:100%;border:1.5px solid var(--gris7);border-radius:var(--r);padding:11px 13px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--negro);outline:none;transition:border-color .15s;background:var(--blanco)}
+.campo-grupo input:focus,.campo-grupo select:focus{border-color:var(--negro)}
+.btn-login{width:100%;background:var(--negro);color:var(--blanco);border:none;border-radius:var(--r);padding:13px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;cursor:pointer;margin-top:8px;transition:background .2s;letter-spacing:.3px}
+.btn-login:hover{background:var(--gris2)}
+.btn-login:disabled{opacity:.5;cursor:not-allowed}
+.login-error{font-size:12px;color:var(--gris3);margin-top:8px;text-align:center;min-height:16px;font-style:italic}
+
+/* ── HEADER ── */
+.header{background:var(--negro);color:var(--blanco);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--gris2)}
+.hd-izq{display:flex;align-items:center;gap:14px}
+.hd-escudo{width:32px;height:32px;background:var(--blanco);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-weight:500;font-size:11px;color:var(--negro)}
+.hd-titulo{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.5px;color:var(--gris6);line-height:1.3}
+.hd-titulo strong{display:block;color:var(--blanco);font-size:13px}
+.hd-der{display:flex;align-items:center;gap:8px}
+.chip-usuario{background:var(--gris2);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--gris6);display:flex;align-items:center;gap:6px}
+.chip-rol{font-size:9px;background:var(--gris3);border-radius:10px;padding:1px 6px;color:var(--gris7);text-transform:uppercase;letter-spacing:.5px}
+.btn-salir{background:transparent;border:1px solid var(--gris3);color:var(--gris5);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.btn-salir:hover{border-color:var(--gris6);color:var(--blanco)}
+
+/* ── NAV ADMIN ── */
+.nav-admin{background:var(--gris1);border-bottom:1px solid var(--gris2);display:flex;align-items:center;gap:0;padding:0 24px}
+.nav-tab{background:none;border:none;color:var(--gris5);padding:12px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.nav-tab:hover{color:var(--gris7)}
+.nav-tab.activo{color:var(--blanco);border-bottom-color:var(--blanco)}
+
+/* ── CONTENIDO ── */
+.contenido{max-width:1100px;margin:0 auto;padding:24px 20px}
+
+/* ── CARD ── */
+.card{background:var(--blanco);border:1.5px solid var(--gris7);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.card-head{background:var(--negro);color:var(--blanco);padding:12px 18px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between}
+.card-body{padding:20px}
+
+/* ── FORM ── */
+.fg{display:grid;gap:14px;margin-bottom:14px}
+.fg2{grid-template-columns:1fr 1fr}
+.fg3{grid-template-columns:1fr 1fr 1fr}
+.fg1{grid-template-columns:1fr}
+label.lbl{display:block;font-size:11px;font-weight:600;color:var(--gris4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+input.inp,select.inp,textarea.inp{width:100%;border:1.5px solid var(--gris7);border-radius:var(--r);padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--negro);outline:none;transition:border-color .15s;background:var(--gris9)}
+input.inp:focus,select.inp:focus,textarea.inp:focus{border-color:var(--negro);background:var(--blanco)}
+textarea.inp{resize:vertical;min-height:80px;line-height:1.5}
+.bpin-wrap{display:flex;gap:10px;align-items:flex-end}
+.bpin-codigo{flex:1;transition:all .3s;overflow:hidden;max-height:0;opacity:0}
+.bpin-codigo.visible{max-height:80px;opacity:1}
+
+/* ESTADO BADGE */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge.pendiente{background:var(--gris8);color:var(--gris4)}
+.badge.en-proceso{background:var(--gris2);color:var(--blanco)}
+.badge.completado{background:var(--negro);color:var(--blanco)}
+.badge.sin-bpin{background:var(--gris8);color:var(--gris5);font-style:italic}
+
+/* ── BOTONES ── */
+.btn{border:none;border-radius:var(--r);padding:10px 20px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-negro{background:var(--negro);color:var(--blanco)}.btn-negro:hover{background:var(--gris2)}
+.btn-gris{background:var(--gris8);color:var(--negro);border:1.5px solid var(--gris7)}.btn-gris:hover{background:var(--gris7)}
+.btn-med{background:var(--gris2);color:var(--blanco)}.btn-med:hover{background:var(--gris3)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+/* ── MATRIZ ADMIN ── */
+.tabla-wrap{overflow-x:auto;border-radius:var(--r);border:1.5px solid var(--gris7)}
+.matriz{width:100%;border-collapse:collapse;font-size:12px}
+.matriz th{background:var(--negro);color:var(--blanco);padding:10px 12px;text-align:left;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;white-space:nowrap;font-weight:500}
+.matriz td{border-bottom:1px solid var(--gris8);padding:10px 12px;vertical-align:top;color:var(--gris2)}
+.matriz tr:last-child td{border-bottom:none}
+.matriz tr:hover td{background:var(--gris9)}
+.matriz .municipio-cell{font-weight:700;color:var(--negro);font-size:13px}
+.matriz .mono{font-family:'DM Mono',monospace;font-size:11px;color:var(--gris4)}
+.sin-datos{text-align:center;padding:40px;color:var(--gris5);font-style:italic}
+
+/* ── CARDS MUNICIPIOS ── */
+.muni-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.muni-card{background:var(--blanco);border:1.5px solid var(--gris7);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s;position:relative}
+.muni-card:hover{border-color:var(--negro);box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.muni-card.seleccionado{border-color:var(--negro);background:var(--negro);color:var(--blanco)}
+.muni-card .mc-nombre{font-weight:700;font-size:15px;margin-bottom:4px}
+.muni-card .mc-estado{font-size:11px;color:var(--gris4)}
+.muni-card.seleccionado .mc-estado{color:var(--gris6)}
+.muni-card .mc-badge{position:absolute;top:12px;right:12px}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--blanco);border:1.5px solid var(--gris7);border-radius:10px;padding:16px 18px}
+.stat-num{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;color:var(--negro);line-height:1}
+.stat-lbl{font-size:11px;color:var(--gris4);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── HISTORIAL ESTADOS ── */
+.historial{margin-top:14px}
+.historial-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--gris8)}
+.historial-item:last-child{border-bottom:none}
+.h-dot{width:8px;height:8px;border-radius:50%;background:var(--gris6);flex-shrink:0;margin-top:5px}
+.h-fecha{font-family:'DM Mono',monospace;font-size:10px;color:var(--gris5);white-space:nowrap;margin-top:3px}
+.h-texto{font-size:12px;color:var(--gris2);line-height:1.5;flex:1}
+.h-autor{font-size:11px;color:var(--gris5);margin-top:2px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:500;background:var(--negro);color:var(--blanco);border-radius:10px;padding:12px 20px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;animation:sube .3s ease;max-width:320px}
+.toast.err{background:var(--gris2);border-left:3px solid var(--gris5)}
+@keyframes sube{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── LOADING ── */
+.loading{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:600;flex-direction:column;gap:14px;color:var(--blanco)}
+.loading.visible{display:flex}
+.spin{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:var(--blanco);border-radius:50%;animation:girar .7s linear infinite}
+@keyframes girar{to{transform:rotate(360deg)}}
+.loading-txt{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.5px}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gris7);border-radius:3px}
+@media(max-width:600px){.fg2,.fg3{grid-template-columns:1fr}.hd-titulo{display:none}.stats-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-card">
+    <div class="login-marca">
+      <div class="login-escudo">ART</div>
+      <div class="login-nombre-app">Regional BCNN<br>Maquinaria Amarilla PDET</div>
+    </div>
+    <div class="login-titulo">Adquisición y/o Fortalecimiento<br>de Maquinaria Amarilla</div>
+    <div class="login-subtitulo">Municipios PDET · Regional Bajo Cauca Norte y Nordeste de Antioquia</div>
+    <div class="login-tabs">
+      <button class="login-tab activo" id="tab-func" onclick="setTab('funcionario')">Funcionario</button>
+      <button class="login-tab" id="tab-admin" onclick="setTab('admin')">Administrador</button>
+    </div>
+    <div class="campo-grupo">
+      <label>Nombre completo</label>
+      <input class="inp" type="text" id="login-nombre" placeholder="Ej: Keila Landero">
+    </div>
+    <div class="campo-grupo" id="campo-password" style="display:none">
+      <label>Contraseña de administrador</label>
+      <input class="inp" type="password" id="login-password" placeholder="••••••••">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn-login" id="btn-login" onclick="entrar()">Ingresar →</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="spin"></div>
+  <div class="loading-txt" id="loading-txt">Cargando...</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+<header class="header">
+  <div class="hd-izq">
+    <div class="hd-escudo">ART</div>
+    <div class="hd-titulo">
+      <strong>Maquinaria Amarilla PDET</strong>
+      Regional Bajo Cauca Norte y Nordeste · BCNN
+    </div>
+  </div>
+  <div class="hd-der">
+    <div class="chip-usuario">
+      <span id="hd-nombre">—</span>
+      <span class="chip-rol" id="hd-rol">—</span>
+    </div>
+    <button class="btn-salir" onclick="salir()">Salir</button>
+  </div>
+</header>
+
+<!-- NAV ADMIN -->
+<div class="nav-admin" id="nav-admin" style="display:none">
+  <button class="nav-tab activo" onclick="setVistaAdmin('matriz')">Matriz consolidada</button>
+  <button class="nav-tab" onclick="setVistaAdmin('municipios')">Por municipio</button>
+  <button class="nav-tab" onclick="setVistaAdmin('exportar')">Exportar</button>
+</div>
+
+<div class="contenido" id="contenido"></div>
+
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, addDoc, updateDoc, query, where, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
+const db = getFirestore(initializeApp({
+  apiKey:            "AIzaSyBSG60HBonk3pxgkuwF_hD29bbsbwg75HI",
+  authDomain:        "art-matriz-bcnn.firebaseapp.com",
+  projectId:         "art-matriz-bcnn",
+  storageBucket:     "art-matriz-bcnn.firebasestorage.app",
+  messagingSenderId: "295879257811",
+  appId:             "1:295879257811:web:6f041bdd6d7ad7d784ee26"
+}));
+
+// ── CONSTANTES ────────────────────────────────────────────────────────────────
+const MUNICIPIOS = [
+  'Amalfi','Anorí','Briceño','Cáceres','Caucasia',
+  'El Bagre','Ituango','Nechí','Remedios','Segovia',
+  'Tarazá','Valdivia','Zaragoza'
+];
+const ESTADOS = ['Sin iniciar','En proceso','Carpetas enviadas','Con BPIN','Completado'];
+const ADMIN_PASS = 'art2026bcnn';
+
+// ── SESIÓN ────────────────────────────────────────────────────────────────────
+let sesion = { nombre:'', rol:'', key:'' };
+
+function normKey(n){ return n.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_'); }
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+let tabActual = 'funcionario';
+window.setTab = (tab) => {
+  tabActual = tab;
+  document.getElementById('tab-func').classList.toggle('activo', tab==='funcionario');
+  document.getElementById('tab-admin').classList.toggle('activo', tab==='admin');
+  document.getElementById('campo-password').style.display = tab==='admin' ? 'block' : 'none';
+};
+
+window.entrar = async () => {
+  const nombre = document.getElementById('login-nombre').value.trim();
+  const pass   = document.getElementById('login-password').value;
+  const errEl  = document.getElementById('login-error');
+  errEl.textContent = '';
+  if (!nombre || nombre.length < 3) { errEl.textContent = 'Ingresa tu nombre completo.'; return; }
+  if (tabActual === 'admin' && pass !== ADMIN_PASS) { errEl.textContent = 'Contraseña incorrecta.'; return; }
+  sesion = { nombre, rol: tabActual, key: normKey(nombre) };
+  localStorage.setItem('art_maq_sesion', JSON.stringify(sesion));
+  document.getElementById('login-wrap').classList.add('oculto');
+  iniciarApp();
+};
+
+document.getElementById('login-nombre').addEventListener('keydown', e => { if(e.key==='Enter') window.entrar(); });
+document.getElementById('login-password').addEventListener('keydown', e => { if(e.key==='Enter') window.entrar(); });
+
+window.salir = () => { localStorage.removeItem('art_maq_sesion'); location.reload(); };
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function iniciarApp() {
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('hd-nombre').textContent = sesion.nombre;
+  document.getElementById('hd-rol').textContent    = sesion.rol === 'admin' ? 'Admin' : 'Funcionario';
+  if (sesion.rol === 'admin') {
+    document.getElementById('nav-admin').style.display = 'flex';
+    renderMatrizAdmin();
+  } else {
+    renderFormFuncionario();
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastT;
+function toast(msg, tipo='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast'+(tipo==='err'?' err':'');
+  t.style.display = 'block'; clearTimeout(toastT);
+  toastT = setTimeout(() => t.style.display='none', 3000);
+}
+
+function loading(vis, txt='Guardando...') {
+  document.getElementById('loading').classList.toggle('visible', vis);
+  document.getElementById('loading-txt').textContent = txt;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  FUNCIONARIO — FORMULARIO
+// ══════════════════════════════════════════════════════════════════════════════
+function renderFormFuncionario() {
+  const c = document.getElementById('contenido');
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-head">
+        DILIGENCIAR SEGUIMIENTO
+        <span style="font-size:10px;color:var(--gris5)">${sesion.nombre}</span>
+      </div>
+      <div class="card-body">
+
+        <div class="fg fg2">
+          <div>
+            <label class="lbl">Municipio PDET</label>
+            <select class="inp" id="f-municipio" onchange="onMunicipioChange()">
+              <option value="">— Seleccione municipio —</option>
+              ${MUNICIPIOS.map(m=>`<option>${m}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="lbl">Fecha envío de carpetas</label>
+            <input class="inp" type="date" id="f-fecha">
+          </div>
+        </div>
+
+        <div class="fg fg2">
+          <div>
+            <label class="lbl">¿Tiene código BPIN?</label>
+            <select class="inp" id="f-bpin" onchange="onBpinChange()">
+              <option value="">— Seleccione —</option>
+              <option value="si">Sí</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+          <div id="f-bpin-codigo-wrap" class="bpin-codigo">
+            <label class="lbl">Código BPIN</label>
+            <input class="inp" type="text" id="f-bpin-codigo" placeholder="Ej: 2025-001-123456">
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;border-color:var(--gris8)">
+          <div class="card-head" style="background:var(--gris2);font-size:11px">RESPONSABLE DEL MUNICIPIO</div>
+          <div class="card-body" style="padding:14px">
+            <div class="fg fg3">
+              <div><label class="lbl">Nombre</label><input class="inp" type="text" id="f-resp-nombre" placeholder="Nombre completo"></div>
+              <div><label class="lbl">Correo electrónico</label><input class="inp" type="email" id="f-resp-correo" placeholder="correo@art.gov.co"></div>
+              <div><label class="lbl">Celular</label><input class="inp" type="tel" id="f-resp-cel" placeholder="321 000 0000"></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <label class="lbl">Estado actual</label>
+          <select class="inp" id="f-estado">
+            ${ESTADOS.map(e=>`<option>${e}</option>`).join('')}
+          </select>
+        </div>
+
+        <div style="margin-top:14px">
+          <label class="lbl">Observaciones</label>
+          <textarea class="inp" id="f-observaciones" placeholder="Describe el estado actual, avances, pendientes, dificultades..." rows="4"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-negro" onclick="guardarRegistro()">Guardar registro</button>
+          <button class="btn btn-gris" onclick="limpiarForm()">Limpiar</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HISTORIAL DEL FUNCIONARIO -->
+    <div class="card" id="card-historial" style="display:none">
+      <div class="card-head">MIS REGISTROS</div>
+      <div class="card-body" id="body-historial"></div>
+    </div>`;
+
+  cargarMisRegistros();
+}
+
+window.onMunicipioChange = () => {
+  const muni = document.getElementById('f-municipio').value;
+  if (muni) cargarDatosMunicipio(muni);
+};
+
+window.onBpinChange = () => {
+  const val = document.getElementById('f-bpin').value;
+  const wrap = document.getElementById('f-bpin-codigo-wrap');
+  wrap.classList.toggle('visible', val === 'si');
+};
+
+async function cargarDatosMunicipio(muni) {
+  try {
+    const snap = await getDocs(query(collection(db,'maquinaria_muni'), where('municipio','==',muni)));
+    if (!snap.empty) {
+      const d = snap.docs[0].data();
+      if(d.fechaEnvio)   document.getElementById('f-fecha').value         = d.fechaEnvio;
+      if(d.bpin)         document.getElementById('f-bpin').value           = d.bpin;
+      if(d.bpinCodigo)   document.getElementById('f-bpin-codigo').value    = d.bpinCodigo;
+      if(d.respNombre)   document.getElementById('f-resp-nombre').value    = d.respNombre;
+      if(d.respCorreo)   document.getElementById('f-resp-correo').value    = d.respCorreo;
+      if(d.respCel)      document.getElementById('f-resp-cel').value       = d.respCel;
+      if(d.estado)       document.getElementById('f-estado').value         = d.estado;
+      if(d.bpin==='si')  document.getElementById('f-bpin-codigo-wrap').classList.add('visible');
+    }
+  } catch(e) {}
+}
+
+async function guardarRegistro() {
+  const municipio   = document.getElementById('f-municipio').value;
+  const fecha       = document.getElementById('f-fecha').value;
+  const bpin        = document.getElementById('f-bpin').value;
+  const bpinCodigo  = document.getElementById('f-bpin-codigo').value.trim();
+  const respNombre  = document.getElementById('f-resp-nombre').value.trim();
+  const respCorreo  = document.getElementById('f-resp-correo').value.trim();
+  const respCel     = document.getElementById('f-resp-cel').value.trim();
+  const estado      = document.getElementById('f-estado').value;
+  const observaciones = document.getElementById('f-observaciones').value.trim();
+
+  if (!municipio)     { toast('Selecciona un municipio.','err'); return; }
+  if (!observaciones) { toast('Ingresa observaciones del estado actual.','err'); return; }
+
+  loading(true, 'Guardando registro...');
+  try {
+    // Guardar/actualizar datos del municipio
+    const muniRef = doc(db, 'maquinaria_muni', municipio.toLowerCase().replace(/\s/g,'_'));
+    await setDoc(muniRef, {
+      municipio, fechaEnvio:fecha, bpin, bpinCodigo,
+      respNombre, respCorreo, respCel, estado,
+      ultimaActualizacion: Date.now(), ultimoFuncionario: sesion.nombre
+    }, {merge:true});
+
+    // Guardar entrada de historial
+    await addDoc(collection(db,'maquinaria_historial'), {
+      municipio, estado, observaciones,
+      funcionario: sesion.nombre,
+      funcionarioKey: sesion.key,
+      fecha: new Date().toISOString(),
+      timestamp: Date.now()
+    });
+
+    loading(false);
+    toast('Registro guardado correctamente.');
+    document.getElementById('f-observaciones').value = '';
+    cargarMisRegistros();
+  } catch(e) {
+    loading(false);
+    toast('Error al guardar: '+e.message, 'err');
+  }
+}
+
+window.guardarRegistro = guardarRegistro;
+
+window.limpiarForm = () => {
+  ['f-municipio','f-fecha','f-bpin','f-bpin-codigo','f-resp-nombre','f-resp-correo','f-resp-cel','f-estado','f-observaciones']
+    .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('f-bpin-codigo-wrap').classList.remove('visible');
+};
+
+async function cargarMisRegistros() {
+  try {
+    const snap = await getDocs(query(
+      collection(db,'maquinaria_historial'),
+      where('funcionarioKey','==',sesion.key)
+    ));
+    const items = [];
+    snap.forEach(d => items.push(d.data()));
+    items.sort((a,b) => b.timestamp - a.timestamp);
+
+    const card = document.getElementById('card-historial');
+    const body = document.getElementById('body-historial');
+    if (!items.length) { card.style.display='none'; return; }
+    card.style.display = 'block';
+    body.innerHTML = `<div class="historial">
+      ${items.slice(0,10).map(i=>`
+        <div class="historial-item">
+          <div class="h-dot"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <span style="font-weight:600;font-size:13px;color:var(--negro)">${i.municipio}</span>
+              <span class="badge ${badgeClass(i.estado)}">${i.estado}</span>
+            </div>
+            <div class="h-texto">${i.observaciones}</div>
+            <div class="h-fecha">${formatFecha(i.fecha)}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  ADMIN — VISTAS
+// ══════════════════════════════════════════════════════════════════════════════
+let vistaAdmin = 'matriz';
+window.setVistaAdmin = (v) => {
+  vistaAdmin = v;
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
+    const vistas = ['matriz','municipios','exportar'];
+    t.classList.toggle('activo', vistas[i]===v);
+  });
+  if(v==='matriz')     renderMatrizAdmin();
+  if(v==='municipios') renderMunicipiosAdmin();
+  if(v==='exportar')   renderExportarAdmin();
+};
+
+// ── MATRIZ CONSOLIDADA ────────────────────────────────────────────────────────
+async function renderMatrizAdmin() {
+  const c = document.getElementById('contenido');
+  c.innerHTML = `<div style="color:var(--gris5);text-align:center;padding:40px;font-family:'DM Mono',monospace;font-size:12px">Cargando datos...</div>`;
+  try {
+    const [snapMuni, snapHist] = await Promise.all([
+      getDocs(collection(db,'maquinaria_muni')),
+      getDocs(collection(db,'maquinaria_historial'))
+    ]);
+
+    const munis = {};
+    snapMuni.forEach(d => munis[d.data().municipio] = d.data());
+
+    const ultimosEstados = {};
+    const histPorMuni = {};
+    snapHist.forEach(d => {
+      const h = d.data();
+      if(!histPorMuni[h.municipio]) histPorMuni[h.municipio]=[];
+      histPorMuni[h.municipio].push(h);
+    });
+    Object.keys(histPorMuni).forEach(m => {
+      histPorMuni[m].sort((a,b)=>b.timestamp-a.timestamp);
+      ultimosEstados[m] = histPorMuni[m][0];
+    });
+
+    const totalMunis  = MUNICIPIOS.length;
+    const conInfo     = MUNICIPIOS.filter(m=>munis[m]).length;
+    const conBpin     = MUNICIPIOS.filter(m=>munis[m]?.bpin==='si').length;
+    const completados = MUNICIPIOS.filter(m=>munis[m]?.estado==='Completado').length;
+
+    c.innerHTML = `
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num">${totalMunis}</div><div class="stat-lbl">Municipios PDET</div></div>
+        <div class="stat-card"><div class="stat-num">${conInfo}</div><div class="stat-lbl">Con registro</div></div>
+        <div class="stat-card"><div class="stat-num">${conBpin}</div><div class="stat-lbl">Con BPIN</div></div>
+        <div class="stat-card"><div class="stat-num">${completados}</div><div class="stat-lbl">Completados</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          MATRIZ CONSOLIDADA — ${MUNICIPIOS.length} MUNICIPIOS
+          <span style="font-size:10px;color:var(--gris5)">Regional BCNN</span>
+        </div>
+        <div style="overflow:hidden">
+          <div class="tabla-wrap" style="border-radius:0;border:none">
+            <table class="matriz" id="tabla-matriz">
+              <thead>
+                <tr>
+                  <th>Municipio</th>
+                  <th>BPIN</th>
+                  <th>Código BPIN</th>
+                  <th>Fecha Envío Carpetas</th>
+                  <th>Responsable</th>
+                  <th>Correo</th>
+                  <th>Celular</th>
+                  <th>Estado</th>
+                  <th>Última observación</th>
+                  <th>Funcionario</th>
+                  <th>Actualización</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${MUNICIPIOS.map(m => {
+                  const d = munis[m]||{};
+                  const ult = ultimosEstados[m]||{};
+                  return `<tr>
+                    <td class="municipio-cell">${m}</td>
+                    <td>${d.bpin==='si'?'<span class="badge en-proceso">Sí</span>':d.bpin==='no'?'<span class="badge pendiente">No</span>':'<span class="badge sin-bpin">—</span>'}</td>
+                    <td class="mono">${d.bpinCodigo||'—'}</td>
+                    <td class="mono">${d.fechaEnvio?formatFechaCorta(d.fechaEnvio):'—'}</td>
+                    <td>${d.respNombre||'—'}</td>
+                    <td class="mono" style="font-size:11px">${d.respCorreo||'—'}</td>
+                    <td class="mono">${d.respCel||'—'}</td>
+                    <td>${d.estado?`<span class="badge ${badgeClass(d.estado)}">${d.estado}</span>`:'<span class="badge sin-bpin">Sin registro</span>'}</td>
+                    <td style="max-width:200px;font-size:11px;color:var(--gris4)">${ult.observaciones||'—'}</td>
+                    <td style="font-size:11px">${ult.funcionario||'—'}</td>
+                    <td class="mono" style="font-size:10px">${d.ultimaActualizacion?formatFechaCorta(new Date(d.ultimaActualizacion).toISOString().slice(0,10)):'—'}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+  } catch(e) {
+    c.innerHTML = `<div style="color:var(--gris5);padding:40px;text-align:center">Error cargando datos: ${e.message}</div>`;
+  }
+}
+
+// ── VISTA POR MUNICIPIO ───────────────────────────────────────────────────────
+async function renderMunicipiosAdmin() {
+  const c = document.getElementById('contenido');
+  c.innerHTML = `<div style="color:var(--gris5);text-align:center;padding:40px;font-family:'DM Mono',monospace;font-size:12px">Cargando...</div>`;
+  try {
+    const snapMuni = await getDocs(collection(db,'maquinaria_muni'));
+    const munis = {};
+    snapMuni.forEach(d => munis[d.data().municipio] = d.data());
+
+    c.innerHTML = `
+      <div class="muni-grid" id="muni-grid">
+        ${MUNICIPIOS.map(m => {
+          const d = munis[m]||{};
+          return `<div class="muni-card" onclick="verDetalleMunicipio('${m}')">
+            <div class="mc-nombre">${m}</div>
+            <div class="mc-estado">${d.estado||'Sin registro'} · ${d.respNombre||'Sin responsable'}</div>
+            <div class="mc-badge">${d.bpin==='si'?'<span class="badge en-proceso" style="font-size:10px">BPIN ✓</span>':'<span class="badge pendiente" style="font-size:10px">Sin BPIN</span>'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div id="detalle-muni" style="margin-top:20px"></div>`;
+  } catch(e) {}
+}
+
+window.verDetalleMunicipio = async (muni) => {
+  const det = document.getElementById('detalle-muni');
+  det.innerHTML = `<div style="color:var(--gris5);padding:20px;font-family:'DM Mono',monospace;font-size:12px">Cargando historial de ${muni}...</div>`;
+
+  // Resaltar seleccionado
+  document.querySelectorAll('.muni-card').forEach(c=>{
+    c.classList.toggle('seleccionado', c.querySelector('.mc-nombre').textContent===muni);
+  });
+
+  try {
+    const [snapMuni, snapHist] = await Promise.all([
+      getDocs(query(collection(db,'maquinaria_muni'), where('municipio','==',muni))),
+      getDocs(query(collection(db,'maquinaria_historial'), where('municipio','==',muni)))
+    ]);
+
+    const d = snapMuni.empty ? {} : snapMuni.docs[0].data();
+    const hist = [];
+    snapHist.forEach(h => hist.push(h.data()));
+    hist.sort((a,b) => b.timestamp - a.timestamp);
+
+    det.innerHTML = `
+      <div class="card">
+        <div class="card-head">${muni.toUpperCase()} — DETALLE
+          <span style="font-size:10px;color:var(--gris5)">${hist.length} entrada(s)</span>
+        </div>
+        <div class="card-body">
+          <div class="fg fg3" style="margin-bottom:16px">
+            <div><span class="lbl">BPIN</span><div style="margin-top:4px">${d.bpin==='si'?`<span class="badge en-proceso">Sí — ${d.bpinCodigo||'sin código'}</span>`:'<span class="badge pendiente">No</span>'}</div></div>
+            <div><span class="lbl">Fecha envío carpetas</span><div style="margin-top:4px;font-family:'DM Mono',monospace;font-size:13px">${d.fechaEnvio?formatFechaCorta(d.fechaEnvio):'—'}</div></div>
+            <div><span class="lbl">Estado actual</span><div style="margin-top:4px">${d.estado?`<span class="badge ${badgeClass(d.estado)}">${d.estado}</span>`:'—'}</div></div>
+          </div>
+          <div class="fg fg3">
+            <div><span class="lbl">Responsable</span><div style="margin-top:4px;font-size:13px">${d.respNombre||'—'}</div></div>
+            <div><span class="lbl">Correo</span><div style="margin-top:4px;font-size:12px;font-family:'DM Mono',monospace">${d.respCorreo||'—'}</div></div>
+            <div><span class="lbl">Celular</span><div style="margin-top:4px;font-family:'DM Mono',monospace">${d.respCel||'—'}</div></div>
+          </div>
+          <div style="margin-top:16px">
+            <div class="lbl" style="margin-bottom:8px">Historial de observaciones</div>
+            <div class="historial">
+              ${hist.length ? hist.map(h=>`
+                <div class="historial-item">
+                  <div class="h-dot"></div>
+                  <div style="flex:1">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+                      <span class="badge ${badgeClass(h.estado)}">${h.estado}</span>
+                      <span class="h-fecha">${formatFecha(h.fecha)}</span>
+                    </div>
+                    <div class="h-texto">${h.observaciones}</div>
+                    <div class="h-autor">Por: ${h.funcionario}</div>
+                  </div>
+                </div>`).join('') : '<div style="color:var(--gris5);font-style:italic;padding:10px 0">Sin historial registrado.</div>'}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    det.scrollIntoView({behavior:'smooth', block:'start'});
+  } catch(e) {}
+};
+
+// ── EXPORTAR ──────────────────────────────────────────────────────────────────
+function renderExportarAdmin() {
+  const c = document.getElementById('contenido');
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-head">EXPORTAR DATOS</div>
+      <div class="card-body">
+        <p style="color:var(--gris4);font-size:13px;margin-bottom:20px">Exporta la matriz consolidada de los 13 municipios PDET con toda la información registrada.</p>
+        <div class="btn-row">
+          <button class="btn btn-negro" id="btn-xlsx" onclick="exportarExcel()">⬇ Exportar Excel profesional</button>
+          <button class="btn btn-med"   id="btn-pdf"  onclick="exportarPDF()">⬇ Exportar PDF</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function exportarExcel() {
+  const btn = document.getElementById('btn-xlsx');
+  if(btn) { btn.disabled=true; btn.textContent='⏳ Generando...'; }
+  loading(true, 'Generando Excel...');
+  try {
+    const [snapMuni, snapHist] = await Promise.all([
+      getDocs(collection(db,'maquinaria_muni')),
+      getDocs(collection(db,'maquinaria_historial'))
+    ]);
+    const munis={}, hist={};
+    snapMuni.forEach(d=>munis[d.data().municipio]=d.data());
+    snapHist.forEach(d=>{const h=d.data();if(!hist[h.municipio])hist[h.municipio]=[];hist[h.municipio].push(h);});
+    Object.keys(hist).forEach(m=>hist[m].sort((a,b)=>b.timestamp-a.timestamp));
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator='ART BCNNA'; wb.created=new Date();
+    const ws = wb.addWorksheet('Matriz Maquinaria PDET',{
+      pageSetup:{orientation:'landscape',fitToPage:true,fitToWidth:1}
+    });
+
+    // Título
+    ws.mergeCells('A1:K1');
+    const cTit = ws.getCell('A1');
+    cTit.value='ADQUISICIÓN Y/O FORTALECIMIENTO DE MAQUINARIA AMARILLA — MUNICIPIOS PDET — REGIONAL BCNN';
+    cTit.font={name:'Arial',bold:true,size:11,color:{argb:'FFFFFFFF'}};
+    cTit.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0A0A0A'}};
+    cTit.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    cTit.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:'medium'},right:{style:'medium'}};
+    ws.getRow(1).height=32;
+
+    // Cabeceras
+    const hdrs=['Municipio','BPIN','Código BPIN','Fecha Envío Carpetas','Responsable','Correo','Celular','Estado','Última Observación','Funcionario','Última Actualización'];
+    const colWidths=[20,8,18,18,22,28,14,16,40,20,18];
+    hdrs.forEach((h,i)=>{
+      const col=String.fromCharCode(65+i);
+      const c=ws.getCell(`${col}2`);
+      c.value=h; c.font={name:'Arial',bold:true,size:9,color:{argb:'FFFFFFFF'}};
+      c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A1A1A'}};
+      c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      c.border={top:{style:'medium'},bottom:{style:'medium'},left:{style:i===0?'medium':'thin'},right:{style:i===10?'medium':'thin'}};
+      ws.getColumn(col).width=colWidths[i];
+    });
+    ws.getRow(2).height=30;
+
+    // Datos
+    MUNICIPIOS.forEach((m,ri)=>{
+      const d=munis[m]||{}, ult=(hist[m]||[])[0]||{};
+      const fila=[
+        m,
+        d.bpin==='si'?'SÍ':d.bpin==='no'?'NO':'—',
+        d.bpinCodigo||'—',
+        d.fechaEnvio?formatFechaCorta(d.fechaEnvio):'—',
+        d.respNombre||'—',
+        d.respCorreo||'—',
+        d.respCel||'—',
+        d.estado||'Sin registro',
+        ult.observaciones||'—',
+        ult.funcionario||'—',
+        d.ultimaActualizacion?new Date(d.ultimaActualizacion).toLocaleDateString('es-CO'):'—'
+      ];
+      fila.forEach((val,ci)=>{
+        const col=String.fromCharCode(65+ci);
+        const c=ws.getCell(`${col}${ri+3}`);
+        c.value=val;
+        c.font={name:'Arial',size:9,color:{argb:'FF111111'}};
+        c.alignment={horizontal:'left',vertical:'top',wrapText:true};
+        c.fill={type:'pattern',pattern:'solid',fgColor:{argb:ri%2===0?'FFFFFFFF':'FFF8F8F8'}};
+        c.border={bottom:{style:'thin'},left:{style:ci===0?'medium':'thin'},right:{style:ci===10?'medium':'thin'}};
+      });
+      ws.getRow(ri+3).height=40;
+    });
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=`Maquinaria_PDET_BCNN_${new Date().toISOString().slice(0,10)}.xlsx`;
+    a.click(); URL.revokeObjectURL(url);
+    toast('Excel generado correctamente.');
+  } catch(e) { toast('Error: '+e.message,'err'); console.error(e); }
+  loading(false);
+  if(btn){btn.disabled=false;btn.textContent='⬇ Exportar Excel profesional';}
+}
+
+async function exportarPDF() {
+  const btn = document.getElementById('btn-pdf');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generando...';}
+  loading(true,'Generando PDF...');
+  try {
+    const [snapMuni,snapHist]=await Promise.all([
+      getDocs(collection(db,'maquinaria_muni')),
+      getDocs(collection(db,'maquinaria_historial'))
+    ]);
+    const munis={},hist={};
+    snapMuni.forEach(d=>munis[d.data().municipio]=d.data());
+    snapHist.forEach(d=>{const h=d.data();if(!hist[h.municipio])hist[h.municipio]=[];hist[h.municipio].push(h);});
+    Object.keys(hist).forEach(m=>hist[m].sort((a,b)=>b.timestamp-a.timestamp));
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'l',unit:'mm',format:'a4'});
+    const W=297,mar=10,ancho=W-mar*2;
+    const negro=[10,10,10],blanco=[255,255,255],gris=[26,26,26];
+
+    // Título
+    doc.setFillColor(...negro);
+    doc.rect(mar,mar,ancho,10,'F');
+    doc.setTextColor(...blanco);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(10);
+    doc.text('ADQUISICIÓN Y/O FORTALECIMIENTO DE MAQUINARIA AMARILLA — MUNICIPIOS PDET — REGIONAL BCNN',W/2,mar+7,{align:'center'});
+
+    const filas=MUNICIPIOS.map(m=>{
+      const d=munis[m]||{},ult=(hist[m]||[])[0]||{};
+      return [m,d.bpin==='si'?'SÍ':d.bpin==='no'?'NO':'—',d.bpinCodigo||'—',d.fechaEnvio?formatFechaCorta(d.fechaEnvio):'—',d.respNombre||'—',d.respCorreo||'—',d.respCel||'—',d.estado||'Sin registro',(ult.observaciones||'—').slice(0,80),ult.funcionario||'—'];
+    });
+
+    doc.autoTable({
+      startY:mar+12,margin:{left:mar,right:mar},
+      head:[['Municipio','BPIN','Cód. BPIN','F. Carpetas','Responsable','Correo','Celular','Estado','Última observación','Funcionario']],
+      body:filas,
+      theme:'grid',
+      headStyles:{fillColor:gris,textColor:blanco,fontSize:7,fontStyle:'bold',cellPadding:3},
+      bodyStyles:{fontSize:7,cellPadding:3,valign:'top',overflow:'linebreak'},
+      alternateRowStyles:{fillColor:[248,248,248]},
+      columnStyles:{0:{cellWidth:20},1:{cellWidth:10,halign:'center'},2:{cellWidth:20},3:{cellWidth:18},4:{cellWidth:22},5:{cellWidth:30},6:{cellWidth:16},7:{cellWidth:18},8:{cellWidth:40},9:{cellWidth:20}},
+    });
+
+    const pH=doc.internal.pageSize.getHeight();
+    doc.setFontSize(7);doc.setTextColor(150,150,150);
+    doc.text(`ART BCNN · Exportado: ${new Date().toLocaleDateString('es-CO')}`,mar,pH-5);
+    doc.text(`Página 1 de 1`,W-mar,pH-5,{align:'right'});
+
+    doc.save(`Maquinaria_PDET_BCNN_${new Date().toISOString().slice(0,10)}.pdf`);
+    toast('PDF generado correctamente.');
+  } catch(e){toast('Error: '+e.message,'err');console.error(e);}
+  loading(false);
+  if(btn){btn.disabled=false;btn.textContent='⬇ Exportar PDF';}
+}
+
+window.exportarExcel=exportarExcel;
+window.exportarPDF=exportarPDF;
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function badgeClass(estado){
+  if(!estado) return 'pendiente';
+  if(estado==='Completado') return 'completado';
+  if(estado==='Sin iniciar') return 'pendiente';
+  return 'en-proceso';
+}
+function formatFecha(iso){
+  if(!iso) return '—';
+  try{const d=new Date(iso);return d.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch{return iso;}
+}
+function formatFechaCorta(str){
+  if(!str) return '—';
+  try{const [y,m,d]=str.slice(0,10).split('-');const ms=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return `${parseInt(d)} ${ms[parseInt(m)-1]} ${y}`;}catch{return str;}
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+const sesionGuardada = localStorage.getItem('art_maq_sesion');
+if (sesionGuardada) {
+  try {
+    sesion = JSON.parse(sesionGuardada);
+    document.getElementById('login-wrap').classList.add('oculto');
+    iniciarApp();
+  } catch(e) { localStorage.removeItem('art_maq_sesion'); }
+}
+</script>
+</body>
+</html>
